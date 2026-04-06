@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dark-bg: #212936;
+  --color-nav-bg: #354256;
+  --color-text-white: #ffffff;
+  --color-text-muted: #8e9aab;
+  --color-border-input: #c6d6ef;
+  --color-banner-bg: #eff3ea;
+  --color-banner-text: #2f533a;
+  --color-banner-border: #dfe8d5;
+  --color-avatar-bg: #2b77db;
+}
+
+body {
+  @apply min-h-screen antialiased text-gray-800 bg-white;
+}

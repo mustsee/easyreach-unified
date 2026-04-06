@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  function isUserAuthenticated() {
+    return request.auth.uid != null; 
+  }
+
+  match /databases/{database}/documents {
+    // Arrival documents and their nested bookings
+    match /arrivals/{docId} {
+      allow read, write: if isUserAuthenticated();
+      
+      match /bookings/{bookingID} {
+        allow read, write: if isUserAuthenticated();
+      }
+    }
+    
+    // Hostel Settings
+    match /hostelSettings/{docId} {
+      allow read, write: if isUserAuthenticated();
+    }
+    
+    // Room Mappings
+    match /roomMappings/{docId} {
+      allow read, write: if isUserAuthenticated();
+    }
+    
+    // Users Collection
+    match /users/{userID} {
+      allow read: if isUserAuthenticated();
+      allow write: if false;
+    }
+    
+    // Messages Template Collection
+    match /messages/{messageID} {
+    	allow read, write: if isUserAuthenticated();
+    }
+    
+    // Senders Collection
+    match /senders/{senderID} {
+      allow read, write: if isUserAuthenticated();
+    }
+    
+    // Keep logs if used somewhere else (like in cloud functions)
+    match /logs/{logID=**} {
+    	allow read, write: if isUserAuthenticated();
+    }
+  }
+}
