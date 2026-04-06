@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { auth, googleProvider, db } from '../firebase'
-import { signInWithRedirect, signOut, onAuthStateChanged } from 'firebase/auth'
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import router from '../router'
 
@@ -25,9 +25,21 @@ export const useAuthStore = defineStore('auth', () => {
 
   const loginWithGoogle = async () => {
     try {
-      // Use signInWithRedirect instead of signInWithPopup to avoid COOP errors on GitHub Pages
-      await signInWithRedirect(auth, googleProvider)
-      // The rest of the login logic is handled by onAuthStateChanged observer below
+      const result = await signInWithPopup(auth, googleProvider)
+      const loggedInUser = result.user
+
+      const authorized = await checkIsAuthorized(loggedInUser.email)
+
+      if (authorized) {
+        user.value = loggedInUser
+        isAuthorized.value = true
+        router.push('/arrivals')
+      } else {
+        // Disconnect automatically without showing errors
+        await signOut(auth)
+        user.value = null
+        isAuthorized.value = false
+      }
     } catch (error) {
       console.error("Error during login:", error)
     }
