@@ -43,16 +43,27 @@
           <span class="text-xs font-medium text-gray-500 tracking-tight truncate">
             {{ booking.guestPhone || booking.guestMobile || '-' }}
           </span>
-          <button 
-            v-if="booking.guestPhone || booking.guestMobile"
-            @click.stop="copyPhone"
-            class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all shrink-0"
-            title="Copy phone number"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-          </button>
+          <div class="flex items-center gap-0.5">
+            <button 
+              @click.stop="startEditingPhone"
+              class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all shrink-0"
+              title="Edit phone number"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+            <button 
+              v-if="booking.guestPhone || booking.guestMobile"
+              @click.stop="copyPhone"
+              class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all shrink-0"
+              title="Copy phone number"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <!-- Arrival Time -->
@@ -106,8 +117,19 @@
         <div class="md:w-[40%] space-y-6">
           
           <div>
-            <div class="space-y-1">
-              <p class="text-[13px] text-gray-500 font-medium">{{ booking.guestPhone || booking.guestMobile || 'No phone provided' }}</p>
+            <div class="space-y-1 w-fit">
+              <div class="flex items-center gap-1">
+                <p class="text-[13px] text-gray-500 font-medium">{{ booking.guestPhone || booking.guestMobile || 'No phone provided' }}</p>
+                <button 
+                  @click.stop="startEditingPhone"
+                  class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all shrink-0 -ml-1"
+                  title="Edit phone number"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+              </div>
               <p class="text-[13px] text-gray-500 font-medium break-all">{{ booking.guestEmail || 'No email provided' }}</p>
             </div>
           </div>
@@ -264,6 +286,46 @@
                 <button @click="cancelEditingTime" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-colors">Cancel</button>
                 <button @click="saveArrivalTime" :disabled="isSavingTime" class="px-5 py-2 text-sm font-bold bg-[#5b51ff] text-white rounded-lg hover:bg-[#4a42e0] transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50">
                   <span v-if="isSavingTime" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  <span v-else>Save</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </Teleport>
+
+    <!-- Centered Modal Popover for Editing Phone Number -->
+    <Teleport to="body">
+      <transition 
+        enter-active-class="transition duration-200 ease-out" 
+        enter-from-class="opacity-0 scale-95" 
+        enter-to-class="opacity-100 scale-100" 
+        leave-active-class="transition duration-150 ease-in" 
+        leave-from-class="opacity-100 scale-100" 
+        leave-to-class="opacity-0 scale-95"
+      >
+        <div 
+          v-if="isEditingPhone" 
+          class="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm" 
+          @click.self="cancelEditingPhone"
+        >
+          <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 w-[340px] max-w-[90vw]">
+            <h3 class="text-base font-bold text-gray-800 mb-4">Edit Phone Number</h3>
+            <div class="space-y-4">
+              <input 
+                type="text" 
+                v-model="editPhoneValue" 
+                ref="phoneInputRefModal"
+                class="w-full text-sm border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-shadow"
+                placeholder="e.g. +123 456 789"
+                @keyup.enter="savePhone"
+                @keyup.escape="cancelEditingPhone"
+              />
+              <div class="flex justify-end gap-3 mt-6">
+                <button @click="cancelEditingPhone" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-colors">Cancel</button>
+                <button @click="savePhone" :disabled="isSavingPhone" class="px-5 py-2 text-sm font-bold bg-[#5b51ff] text-white rounded-lg hover:bg-[#4a42e0] transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50">
+                  <span v-if="isSavingPhone" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                   <span v-else>Save</span>
                 </button>
               </div>
@@ -462,6 +524,90 @@ const saveArrivalTime = async () => {
     toast.error('Failed to update arrival time');
   } finally {
     isSavingTime.value = false;
+  }
+};
+
+/**
+ * Editing for phone number
+ */
+const phoneInputRefModal = ref(null);
+const isEditingPhone = ref(false);
+const editPhoneValue = ref('');
+const isSavingPhone = ref(false);
+
+const startEditingPhone = async () => {
+  editPhoneValue.value = props.booking.guestPhone || props.booking.guestMobile || '';
+  isEditingPhone.value = true;
+  
+  await nextTick();
+  if (phoneInputRefModal.value) {
+    phoneInputRefModal.value.focus();
+  }
+};
+
+const cancelEditingPhone = () => {
+  isEditingPhone.value = false;
+};
+
+const savePhone = async () => {
+  if (isSavingPhone.value) return;
+  
+  const newValue = editPhoneValue.value.trim();
+  const currentValue = (props.booking.guestPhone || props.booking.guestMobile || '').trim();
+  
+  // if no change, just close
+  if (newValue === currentValue) {
+    cancelEditingPhone();
+    return;
+  }
+
+  isSavingPhone.value = true;
+  try {
+    const hostelId = hostelStore.currentHostel?.id;
+    if (!hostelId || !props.arrivalDate) throw new Error('Missing hostel info');
+
+    // Update Beds24
+    const { beds24ApiKey, propKey } = props.hostelSettings;
+    if (beds24ApiKey && propKey) {
+      await updateBooking(beds24ApiKey, propKey, props.booking.bookId, {
+        guestMobile: newValue,
+        guestPhone: newValue
+      });
+
+      // Update Firestore
+      await updateBookingField(
+        hostelId,
+        props.arrivalDate,
+        props.booking.bookId,
+        'guestMobile',
+        newValue
+      );
+      await updateBookingField(
+        hostelId,
+        props.arrivalDate,
+        props.booking.bookId,
+        'guestPhone',
+        newValue
+      );
+    } else {
+      console.warn('Missing Beds24 API credentials');
+      throw new Error('Missing Beds24 API credentials');
+    }
+    
+    emit('status-updated', {
+      bookId: props.booking.bookId,
+      messagingStatus: props.booking.messagingStatus,
+      messagingChannel: props.booking.messagingChannel,
+      guestMobile: newValue
+    });
+    
+    toast.success('Phone number updated', { autoClose: 1500 });
+    cancelEditingPhone();
+  } catch (err) {
+    console.error('Error saving phone number:', err);
+    toast.error('Failed to update phone number');
+  } finally {
+    isSavingPhone.value = false;
   }
 };
 

@@ -517,7 +517,7 @@ const refreshArrivals = async () => {
  * Handles status-updated event from ArrivalCard.
  * Updates the local booking's messagingStatus reactively.
  */
-const handleStatusUpdated = ({ bookId, messagingStatus, messagingChannel, guestArrivalTime }) => {
+const handleStatusUpdated = ({ bookId, messagingStatus, messagingChannel, guestArrivalTime, guestMobile }) => {
   const booking = arrivals.value.find(b => String(b.bookId) === String(bookId));
   if (booking) {
     booking.messagingStatus = messagingStatus;
@@ -526,6 +526,10 @@ const handleStatusUpdated = ({ bookId, messagingStatus, messagingChannel, guestA
     
     if (guestArrivalTime !== undefined) {
       booking.guestArrivalTime = guestArrivalTime;
+    }
+    if (guestMobile !== undefined) {
+      booking.guestMobile = guestMobile;
+      booking.guestPhone = guestMobile; // Ensure UI updates immediately
     }
   }
 };
